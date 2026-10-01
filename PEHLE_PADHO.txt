@@ -1,0 +1,9 @@
+FlickerScope - Golden design (naya)
+
+GitHub pe update karna (flickerscope.github.io repo):
+1. Repo kholo -> "Add file" -> "Upload files"
+2. Is ZIP ki saari files daal do (purani replace ho jayengi) -> Commit changes
+3. 1-2 minute ruko, phir link kholo. Purana design dikhe to Cmd+Shift+R (refresh) dabao.
+
+Bina internet ke: index.html pe double-click -> Chrome mein khulegi -> Connect FlickerScope.
+Pico mein kuch change nahi karna.
