@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FlickerScope</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#04060c">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<style>
+:root{--bg:#04060c;--panel:rgba(16,22,40,.72);--line:rgba(120,160,255,.18);--txt:#e8eeff;--mut:#8a97b8;--a:#38e1ff;--b:#a66bff;--ok:#2ee59d;--warn:#ffc23d;--bad:#ff4d6d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(1200px 700px at 75% -10%,#1b1f52 0%,transparent 60%),radial-gradient(900px 600px at -10% 110%,#08394a 0%,transparent 55%),var(--bg);color:var(--txt);font-family:-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:18px}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.logo{width:62px;height:62px;filter:drop-shadow(0 0 14px rgba(56,225,255,.6))}
+.ring{transform-origin:50px 50px;animation:spin 8s linear infinite}
+.ring2{transform-origin:50px 50px;animation:spin 5s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+h1{font-size:28px;letter-spacing:4px;background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mut);font-size:13px;letter-spacing:1px;margin-top:2px}
+.spacer{flex:1}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button,select,input{font:inherit}
+button{background:linear-gradient(135deg,#1d2a55,#2a1d55);color:var(--txt);border:1px solid var(--line);padding:11px 18px;border-radius:12px;font-weight:600;cursor:pointer;font-size:14px;transition:.2s}
+button:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(56,225,255,.25)}
+button.main{background:linear-gradient(135deg,var(--a),var(--b));color:#05070d;border:none}
+select,input{background:#0e1428;color:var(--txt);border:1px solid var(--line);padding:10px 12px;border-radius:12px;font-size:14px}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut);padding:0 6px}
+.dot{width:10px;height:10px;border-radius:50%;background:#444}
+.dot.on{background:var(--ok);box-shadow:0 0 12px var(--ok)}
+.dot.demo{background:var(--warn);box-shadow:0 0 12px var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;perspective:1400px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transform-style:preserve-3d;transition:transform .2s ease-out,box-shadow .2s;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+.card:hover{box-shadow:0 20px 60px rgba(56,225,255,.15),inset 0 1px 0 rgba(255,255,255,.08)}
+.card h3{font-size:11px;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-bottom:10px;font-weight:600}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.big{font-size:36px;font-weight:800;transform:translateZ(30px)}
+.unit{font-size:14px;color:var(--mut);margin-left:4px;font-weight:500}
+.note{font-size:12px;color:var(--mut);margin-top:6px}
+canvas{width:100%;display:block}
+.risk{font-size:26px;font-weight:900;letter-spacing:2px;padding:14px;border-radius:14px;text-align:center;transform:translateZ(40px);transition:.3s}
+.risk.ok{background:rgba(46,229,157,.12);color:var(--ok);border:1px solid rgba(46,229,157,.4);box-shadow:0 0 30px rgba(46,229,157,.2)}
+.risk.warn{background:rgba(255,194,61,.12);color:var(--warn);border:1px solid rgba(255,194,61,.4);box-shadow:0 0 30px rgba(255,194,61,.2)}
+.risk.bad{background:rgba(255,77,109,.12);color:var(--bad);border:1px solid rgba(255,77,109,.4);box-shadow:0 0 30px rgba(255,77,109,.25);animation:pulse 1.4s infinite}
+.risk.idle{background:rgba(255,255,255,.04);color:var(--mut);border:1px solid var(--line)}
+@keyframes pulse{50%{box-shadow:0 0 50px rgba(255,77,109,.5)}}
+.bar{height:10px;background:#0b1022;border-radius:6px;overflow:hidden;margin-top:10px}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:width .3s}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+th,td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+.tag{padding:3px 9px;border-radius:8px;font-size:12px;font-weight:700}
+.tag.ok{background:rgba(46,229,157,.15);color:var(--ok)}.tag.warn{background:rgba(255,194,61,.15);color:var(--warn)}.tag.bad{background:rgba(255,77,109,.15);color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+footer{text-align:center;color:var(--mut);font-size:12px;margin:22px 0 6px;letter-spacing:.5px;line-height:1.8}
+footer b{color:var(--txt)}
+#help{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:5;align-items:center;justify-content:center;padding:16px}
+#help .card{max-width:520px;line-height:1.7;font-size:14px}
+@media(max-width:950px){.c3{grid-column:span 6}.c4,.c5,.c7,.c8{grid-column:span 12}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="wrap">
+<header>
+  <svg class="logo" viewBox="0 0 100 100">
+    <defs><radialGradient id="ig"><stop offset="0" stop-color="#05070d"/><stop offset=".35" stop-color="#05070d"/><stop offset=".4" stop-color="#38e1ff"/><stop offset="1" stop-color="#a66bff"/></radialGradient></defs>
+    <circle cx="50" cy="50" r="30" fill="url(#ig)"/>
+    <circle class="ring" cx="50" cy="50" r="42" fill="none" stroke="#38e1ff" stroke-width="2" stroke-dasharray="10 8"/>
+    <circle class="ring2" cx="50" cy="50" r="47" fill="none" stroke="#a66bff" stroke-width="1.5" stroke-dasharray="3 9"/>
+    <circle cx="42" cy="42" r="5" fill="#fff" opacity=".8"/>
+  </svg>
+  <div>
+    <h1>FLICKERSCOPE</h1>
+    <div class="sub">IRIS · Measuring the Invisible Flicker of Light</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="ctrl">
+    <button class="main" id="btnConnect">⚡ Connect Device</button>
+    <select id="demoSel" title="Demo light">
+      <option value="45">Demo: Cheap LED bulb</option>
+      <option value="12">Demo: CFL / Tube light</option>
+      <option value="0.4">Demo: Flicker-free LED</option>
+    </select>
+    <button id="btnDemo">▶ Demo</button>
+    <button id="btnHelp">?</button>
+    <div class="status"><span class="dot" id="dot"></span><span id="stText">Not connected</span></div>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card c3 tilt"><h3>Flicker Frequency</h3><div class="big"><span id="vFreq">—</span><span class="unit">Hz</span></div><div class="note">How many times per second the light blinks</div></div>
+  <div class="card c3 tilt"><h3>Percent Flicker</h3><div class="big"><span id="vPct">—</span><span class="unit">%</span></div><div class="note">How deep the light dips (modulation depth)</div></div>
+  <div class="card c3 tilt"><h3>Flicker Index</h3><div class="big"><span id="vFi">—</span></div><div class="note">0 = steady light · higher = more flicker</div></div>
+  <div class="card c3 tilt"><h3>Light Level</h3><div class="big"><span id="vLvl">—</span><span class="unit">%</span></div><div class="bar"><div id="lvlBar"></div></div><div class="note" id="lvlNote">Sensor brightness</div></div>
+
+  <div class="card c8 tilt"><h3>Live Light Waveform (0.1 second)</h3><canvas id="cWave" height="260"></canvas></div>
+  <div class="card c4 tilt"><h3>Eye Safety (IEEE 1789)</h3><canvas id="cGauge" height="170"></canvas><div class="risk idle" id="risk">WAITING</div><div class="note" id="riskTxt" style="text-align:center">Connect the device or start Demo</div></div>
+
+  <div class="card c7 tilt"><h3>3D Flicker Spectrum · drag to rotate</h3><canvas id="c3d" height="320" style="cursor:grab"></canvas></div>
+  <div class="card c5 tilt"><h3>Frequency Spectrum (FFT)</h3><canvas id="cSpec" height="320"></canvas></div>
+
+  <div class="card c12">
+    <h3>Saved Readings · compare different lights</h3>
+    <div class="row">
+      <input id="lbl" placeholder="Light name e.g. Philips LED 9W" style="flex:1;min-width:200px">
+      <button class="main" id="btnSave">＋ Save Reading</button>
+      <button id="btnCsv">⬇ Download CSV</button>
+      <button id="btnClear">Clear</button>
+    </div>
+    <table><thead><tr><th>#</th><th>Light</th><th>Frequency</th><th>% Flicker</th><th>Flicker Index</th><th>Result</th><th>Time</th></tr></thead><tbody id="tb"><tr><td colspan="7" style="color:var(--mut)">No readings saved yet</td></tr></tbody></table>
+  </div>
+</div>
+
+<footer>FlickerScope · IRIS — The Invisible Flicker Project<br>Student: <b>Deetya Behl</b> · Mentor: <b>Mohit Sood</b> · HOD: <b>Raghu Raja Mehra</b></footer>
+</div>
+
+<div id="help"><div class="card">
+  <h3>How to use</h3>
+  1. Plug the FlickerScope into the laptop with the USB cable.<br>
+  2. Click <b>⚡ Connect Device</b>, choose the port (usbmodem / USB Serial / COM) and press <b>Connect</b>.<br>
+  3. Put the light to be tested on top of the scope tube.<br>
+  4. Type the light's name and click <b>Save Reading</b>. Repeat for other lights.<br>
+  5. Click <b>Download CSV</b> to get all results in Excel.<br><br>
+  <b>Result guide (IEEE 1789-2015):</b> Green = no visible effect · Yellow = low risk · Red = high risk of eye strain / headache.<br><br>
+  <button class="main" onclick="document.getElementById('help').style.display='none'">Got it</button>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let port=null,reader=null,running=false,demoTimer=null,lineBuf='';
+let samples=[],fs=2000,last=null;
+const hist=[];const HIST=34;
+const saved=[];
+
+/* ---------- canvas helpers ---------- */
+function fit(c){const r=window.devicePixelRatio||1;const w=c.clientWidth,h=+c.getAttribute('height');if(c.width!==w*r){c.width=w*r;c.height=h*r;}const x=c.getContext('2d');x.setTransform(r,0,0,r,0,0);return [x,w,h];}
+
+/* ---------- background stars ---------- */
+const st=$('stars'),sx=st.getContext('2d');let stars=[];
+function initStars(){st.width=innerWidth;st.height=innerHeight;stars=Array.from({length:140},()=>({x:Math.random()*st.width,y:Math.random()*st.height,r:Math.random()*1.4+.2,p:Math.random()*6}));}
+function drawStars(t){sx.clearRect(0,0,st.width,st.height);for(const s of stars){sx.globalAlpha=.3+.7*Math.abs(Math.sin(t/1400+s.p));sx.fillStyle='#bcd4ff';sx.beginPath();sx.arc(s.x,s.y,s.r,0,7);sx.fill();}sx.globalAlpha=1;}
+initStars();addEventListener('resize',initStars);
+
+/* ---------- 3D tilt on cards ---------- */
+document.querySelectorAll('.tilt').forEach(c=>{
+  c.addEventListener('mousemove',e=>{if(c.contains($('c3d'))&&drag)return;const r=c.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.style.transform=`rotateY(${x*7}deg) rotateX(${-y*7}deg) translateZ(6px)`;});
+  c.addEventListener('mouseleave',()=>c.style.transform='');
+});
+
+/* ---------- serial ---------- */
+function setStatus(cls,txt){$('dot').className='dot '+cls;$('stText').textContent=txt;}
+async function connect(){
+  if(!('serial' in navigator)){alert('Please open this application in Google Chrome or Microsoft Edge.');return;}
+  if(running){await disconnect();return;}
+  try{port=await navigator.serial.requestPort();await port.open({baudRate:115200});}catch(e){return;}
+  stopDemo();running=true;setStatus('on','Device connected');$('btnConnect').textContent='⏏ Disconnect';
+  const dec=new TextDecoderStream();port.readable.pipeTo(dec.writable).catch(()=>{});reader=dec.readable.getReader();
+  try{
+    while(running){
+      const {value,done}=await reader.read();if(done)break;
+      lineBuf+=value;let i;
+      while((i=lineBuf.indexOf('\n'))>=0){const line=lineBuf.slice(0,i).trim();lineBuf=lineBuf.slice(i+1);handle(line);}
+      if(lineBuf.length>300000)lineBuf='';
+    }
+  }catch(e){}
+  running=false;setStatus('','Not connected');$('btnConnect').textContent='⚡ Connect Device';
+}
+async function disconnect(){running=false;try{await reader.cancel();}catch(e){}try{await port.close();}catch(e){}}
+if('serial' in navigator)navigator.serial.addEventListener('disconnect',()=>{running=false;setStatus('','Device unplugged');$('btnConnect').textContent='⚡ Connect Device';});
+function handle(line){
+  if(!line.startsWith('D,'))return;
+  const p=line.split(',');const r=+p[1];const s=[];
+  for(let i=2;i<p.length;i++){const v=+p[i];if(!isNaN(v))s.push(v);}
+  if(s.length>=200&&r>100)analyse(s,r);
+}
+
+/* ---------- demo mode ---------- */
+function startDemo(){
+  if(running)return;stopDemo();setStatus('demo','Demo mode');$('btnDemo').textContent='■ Stop Demo';
+  let ph=0;
+  demoTimer=setInterval(()=>{
+    const mod=+$('demoSel').value/100,n=1000,r=2000,s=[];
+    for(let i=0;i<n;i++){const t=i/r;const wave=Math.abs(Math.sin(2*Math.PI*50*t+ph));s.push(Math.round(1800*(1-mod+2*mod*wave*wave)/(1+0)+ (Math.random()-.5)*14));}
+    ph+=0.7;analyse(s,r);
+  },500);
+}
+function stopDemo(){if(demoTimer){clearInterval(demoTimer);demoTimer=null;}$('btnDemo').textContent='▶ Demo';if(!running)setStatus('','Not connected');}
+
+/* ---------- analysis ---------- */
+function analyse(s,r){
+  fs=r;samples=s;const n=s.length;
+  const so=[...s].sort((a,b)=>a-b);const lo=so[Math.floor(n*.01)],hi=so[Math.floor(n*.99)];
+  let sum=0;for(const v of s)sum+=v;const mean=sum/n;
+  const pct=hi+lo>0?(hi-lo)/(hi+lo)*100:0;
+  let above=0;for(const v of s)if(v>mean)above+=v-mean;const fi=sum>0?above/sum:0;
+  const m=new Float32Array(n);for(let i=0;i<n;i++)m[i]=(s[i]-mean)*(0.5-0.5*Math.cos(2*Math.PI*i/(n-1)));
+  const bins=Math.floor(n/2),spec=new Float32Array(bins);let best=0,bk=0;
+  for(let k=1;k<bins;k++){
+    let re=0,im=0;const w=2*Math.PI*k/n;const c=Math.cos(w),sn=Math.sin(w);let cr=1,ci=0;
+    for(let i=0;i<n;i++){re+=m[i]*cr;im-=m[i]*ci;const t=cr*c-ci*sn;ci=cr*sn+ci*c;cr=t;}
+    const a=Math.hypot(re,im)/n;spec[k]=a;if(k*r/n>=5&&a>best){best=a;bk=k;}
+  }
+  const freq=bk*r/n;const flick=pct>=1;
+  last={freq,pct,fi,mean,hi,spec,flick};
+  hist.push(spec);if(hist.length>HIST)hist.shift();
+  updateUI();
+}
+function risk(f,p){
+  if(p<1)return['NO RISK','ok','Steady, flicker-free light. Safe for the eyes.'];
+  let noEff=f<90?0.01*f:0.0333*f,low=f<90?0.025*f:0.08*f;if(f>1250)low=Infinity;if(f>3000)noEff=Infinity;
+  if(p<=noEff)return['NO EFFECT','ok','Flicker is too small to affect the eyes.'];
+  if(p<=low)return['LOW RISK','warn','Some flicker. Fine for short use; not ideal for long study hours.'];
+  return['HIGH RISK','bad','Strong hidden flicker. Can cause eye strain, tiredness and headaches.'];
+}
+function updateUI(){
+  const L=last;
+  $('vFreq').textContent=L.flick?L.freq.toFixed(0):'—';
+  $('vPct').textContent=L.pct.toFixed(1);
+  $('vFi').textContent=L.fi.toFixed(3);
+  const lv=L.mean/4095*100;$('vLvl').textContent=lv.toFixed(0);$('lvlBar').style.width=lv+'%';
+  $('lvlNote').textContent=L.hi>=4080?'⚠ Too bright – add one more paper layer':L.mean<120?'⚠ Too dark – bring the light closer':'✓ Good signal';
+  const [t,c,d]=risk(L.freq,L.pct);const el=$('risk');el.className='risk '+c;el.textContent=t;$('riskTxt').textContent=d;
+}
+
+/* ---------- drawing ---------- */
+function drawWave(){
+  const [x,w,h]=fit($('cWave'));x.clearRect(0,0,w,h);
+  x.strokeStyle='rgba(120,160,255,.08)';x.lineWidth=1;
+  for(let i=1;i<10;i++){x.beginPath();x.moveTo(i*w/10,0);x.lineTo(i*w/10,h);x.stroke();}
+  for(let i=1;i<5;i++){x.beginPath();x.moveTo(0,i*h/5);x.lineTo(w,i*h/5);x.stroke();}
+  if(!samples.length){x.fillStyle='#8a97b8';x.font='14px sans-serif';x.textAlign='center';x.fillText('Waiting for light data…',w/2,h/2);return;}
+  const n=Math.min(samples.length,Math.round(fs*0.1));let mn=Infinity,mx=-Infinity;
+  for(let i=0;i<n;i++){mn=Math.min(mn,samples[i]);mx=Math.max(mx,samples[i]);}
+  const pad=Math.max((mx-mn)*0.25,60);mn-=pad;mx+=pad;
+  const Y=v=>h-(v-mn)/(mx-mn)*h;
+  const g=x.createLinearGradient(0,0,w,0);g.addColorStop(0,'#38e1ff');g.addColorStop(1,'#a66bff');
+  x.beginPath();for(let i=0;i<n;i++){const px=i/(n-1)*w,py=Y(samples[i]);i?x.lineTo(px,py):x.moveTo(px,py);}
+  x.shadowColor='#38e1ff';x.shadowBlur=14;x.strokeStyle=g;x.lineWidth=2.5;x.stroke();x.shadowBlur=0;
+  x.lineTo(w,h);x.lineTo(0,h);x.closePath();const fg=x.createLinearGradient(0,0,0,h);fg.addColorStop(0,'rgba(56,225,255,.25)');fg.addColorStop(1,'rgba(166,107,255,0)');x.fillStyle=fg;x.fill();
+  const my=Y(last.mean);x.setLineDash([6,6]);x.strokeStyle='rgba(255,255,255,.35)';x.beginPath();x.moveTo(0,my);x.lineTo(w,my);x.stroke();x.setLineDash([]);
+  x.fillStyle='#8a97b8';x.font='11px sans-serif';x.fillText('average',6,my-6);x.fillText('0 s',4,h-6);x.textAlign='right';x.fillText('0.1 s',w-4,h-6);x.textAlign='left';
+}
+function drawGauge(){
+  const [x,w,h]=fit($('cGauge'));x.clearRect(0,0,w,h);
+  const cx=w/2,cy=h-14,R=Math.min(w/2-14,h-30);const MAX=50;
+  const seg=[[0,5,'#2ee59d'],[5,15,'#ffc23d'],[15,50,'#ff4d6d']];
+  for(const [a,b,c] of seg){x.beginPath();x.arc(cx,cy,R,Math.PI+a/MAX*Math.PI,Math.PI+b/MAX*Math.PI);x.strokeStyle=c;x.globalAlpha=.85;x.lineWidth=16;x.stroke();}
+  x.globalAlpha=1;
+  const v=last?Math.min(last.pct,MAX):0;gv+=(v-gv)*.15;const ang=Math.PI+gv/MAX*Math.PI;
+  x.strokeStyle='#fff';x.lineWidth=3;x.shadowColor='#38e1ff';x.shadowBlur=12;
+  x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+Math.cos(ang)*(R-6),cy+Math.sin(ang)*(R-6));x.stroke();x.shadowBlur=0;
+  x.fillStyle='#fff';x.beginPath();x.arc(cx,cy,6,0,7);x.fill();
+  x.fillStyle='#8a97b8';x.font='11px sans-serif';x.textAlign='center';x.fillText('0%',cx-R,cy+12);x.fillText('50%',cx+R,cy+12);x.fillText('% flicker',cx,cy-R/2.4);
+}
+let gv=0;
+function drawSpec(){
+  const [x,w,h]=fit($('cSpec'));x.clearRect(0,0,w,h);
+  const fmax=Math.min(1000,fs/2);const bl=30,bb=24,pw=w-bl-6,ph=h-bb-10;
+  x.strokeStyle='rgba(120,160,255,.1)';x.fillStyle='#8a97b8';x.font='11px sans-serif';x.textAlign='center';
+  for(let f=0;f<=fmax;f+=200){const px=bl+f/fmax*pw;x.beginPath();x.moveTo(px,10);x.lineTo(px,10+ph);x.stroke();x.fillText(f+' Hz',px,h-6);}
+  if(!last)return;
+  const s=last.spec,n=s.length*2;let mx=1;for(let k=1;k<s.length;k++){const f=k*fs/n;if(f<=fmax&&f>=5)mx=Math.max(mx,s[k]);}
+  if(!last.flick)mx=Math.max(mx,last.mean*0.05);
+  const g=x.createLinearGradient(0,10+ph,0,10);g.addColorStop(0,'#38e1ff');g.addColorStop(1,'#a66bff');
+  x.fillStyle=g;
+  for(let k=1;k<s.length;k++){const f=k*fs/n;if(f>fmax)break;const px=bl+f/fmax*pw,bh=Math.min(1,s[k]/mx)*ph;x.fillRect(px-1.2,10+ph-bh,2.4,bh);}
+  if(last.flick){const px=bl+last.freq/fmax*pw;x.fillStyle='#fff';x.textAlign='center';x.font='bold 12px sans-serif';x.fillText('▼ '+last.freq.toFixed(0)+' Hz',px,22);}
+}
+/* 3D waterfall */
+let yaw=-0.55,pitch=0.42,drag=false,dx0=0,autoRot=true;
+const c3=$('c3d');
+c3.addEventListener('mousedown',e=>{drag=true;dx0=e.clientX;autoRot=false;c3.style.cursor='grabbing';});
+addEventListener('mouseup',()=>{drag=false;c3.style.cursor='grab';});
+addEventListener('mousemove',e=>{if(drag){yaw+=(e.clientX-dx0)*0.01;dx0=e.clientX;}});
+c3.addEventListener('dblclick',()=>autoRot=true);
+function draw3d(t){
+  const [x,w,h]=fit(c3);x.clearRect(0,0,w,h);if(autoRot)yaw=-0.55+Math.sin(t/4000)*0.45;
+  const cyw=Math.cos(yaw),syw=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch),d=3.4;
+  const P=(X,Y,Z)=>{let x1=X*cyw-Z*syw,z1=X*syw+Z*cyw;let y1=Y*cp-z1*sp;z1=Y*sp+z1*cp;const k=d/(d+z1);return[w/2+x1*w*0.36*k,h*0.66-y1*h*0.5*k,z1];};
+  x.strokeStyle='rgba(120,160,255,.12)';x.lineWidth=1;
+  for(let i=-1;i<=1.001;i+=0.25){let a=P(i,0,-1),b=P(i,0,1);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();a=P(-1,0,i);b=P(1,0,i);x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+  if(!hist.length){x.fillStyle='#8a97b8';x.font='14px sans-serif';x.textAlign='center';x.fillText('3D view appears when data starts',w/2,h/2);return;}
+  let mx=1;for(const s of hist){const n=s.length*2;for(let k=1;k<s.length;k++){if(k*fs/n>=5&&k*fs/n<=1000)mx=Math.max(mx,s[k]);}}
+  if(last&&!last.flick)mx=Math.max(mx,last.mean*0.05);
+  const rows=hist.map((s,ri)=>{const z=1-2*(ri/(HIST-1));const pts=[];const n=s.length*2,fmax=Math.min(1000,fs/2),M=90;
+    for(let j=0;j<=M;j++){const f=5+j/M*(fmax-5);const k=Math.round(f*n/fs);const v=Math.min(1,(s[k]||0)/mx);pts.push(P(-1+2*j/M,v*0.9,z));}
+    return{pts,ri,zc:P(0,0,z)[2]};});
+  rows.sort((a,b)=>b.zc-a.zc);
+  for(const r of rows){
+    const age=r.ri/(HIST-1);const hue=190+age*90;
+    const b0=P(-1,0,1-2*(r.ri/(HIST-1))),b1=P(1,0,1-2*(r.ri/(HIST-1)));
+    x.beginPath();x.moveTo(b0[0],b0[1]);for(const p of r.pts)x.lineTo(p[0],p[1]);x.lineTo(b1[0],b1[1]);x.closePath();
+    x.fillStyle=`rgba(6,10,22,${.55+age*.35})`;x.fill();
+    x.beginPath();r.pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));
+    x.strokeStyle=`hsla(${hue},95%,${55+age*10}%,${.25+age*.75})`;x.lineWidth=age>.95?2.4:1.3;
+    if(age>.95){x.shadowColor=`hsl(${hue},95%,60%)`;x.shadowBlur=14;}x.stroke();x.shadowBlur=0;
+  }
+  x.fillStyle='#8a97b8';x.font='11px sans-serif';const a=P(-1,0,1),b=P(1,0,1);x.textAlign='center';x.fillText('5 Hz',a[0],a[1]+16);x.fillText(Math.min(1000,fs/2)+' Hz',b[0],b[1]+16);
+}
+function loop(t){drawStars(t);drawWave();drawGauge();drawSpec();draw3d(t);requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+
+/* ---------- saved readings ---------- */
+function renderTable(){
+  const tb=$('tb');if(!saved.length){tb.innerHTML='<tr><td colspan="7" style="color:var(--mut)">No readings saved yet</td></tr>';return;}
+  tb.innerHTML=saved.map((r,i)=>`<tr><td>${i+1}</td><td>${r.name.replace(/</g,'&lt;')}</td><td>${r.freq}</td><td>${r.pct}</td><td>${r.fi}</td><td><span class="tag ${r.cls}">${r.risk}</span></td><td>${r.time}</td></tr>`).join('');
+}
+$('btnSave').onclick=()=>{
+  if(!last){alert('No reading yet. Connect the device or start Demo first.');return;}
+  const [t,c]=risk(last.freq,last.pct);
+  saved.push({name:$('lbl').value.trim()||('Light '+(saved.length+1)),freq:last.flick?last.freq.toFixed(0)+' Hz':'—',pct:last.pct.toFixed(1)+' %',fi:last.fi.toFixed(3),risk:t,cls:c,time:new Date().toLocaleTimeString()});
+  $('lbl').value='';renderTable();
+};
+$('btnCsv').onclick=()=>{
+  if(!saved.length){alert('Save some readings first.');return;}
+  const csv='No,Light,Frequency,Percent Flicker,Flicker Index,Result,Time\n'+saved.map((r,i)=>[i+1,'"'+r.name.replace(/"/g,'""')+'"',r.freq,r.pct,r.fi,r.risk,r.time].join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='FlickerScope_Readings.csv';a.click();
+};
+$('btnClear').onclick=()=>{if(saved.length&&confirm('Clear all saved readings?')){saved.length=0;renderTable();}};
+$('btnConnect').onclick=connect;
+$('btnDemo').onclick=()=>demoTimer?stopDemo():startDemo();
+$('btnHelp').onclick=()=>$('help').style.display='flex';
+if(!('serial' in navigator)){$('stText').textContent='Open in Chrome / Edge';}
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
