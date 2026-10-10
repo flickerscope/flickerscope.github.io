@@ -401,7 +401,8 @@ function updateUI(){
   $('vFi').textContent=L.fi.toFixed(3);
   const lv=L.mean/4095*100;$('vLvl').textContent=lv.toFixed(0);$('lvlBar').style.width=lv+'%';
   $('lvlNote').textContent=L.hi>=4080?'⚠ Too bright – add one more paper layer':L.mean<120?'⚠ Too dark – bring the light closer':'✓ Good signal';
-  const [t,c,d]=risk(L.freq,L.pct);const el=$('risk');el.className='risk '+c;el.textContent=t;$('riskTxt').textContent=d;
+  let [t,c,d]=risk(L.freq,L.pct);if(L.mean<120){t='TOO DARK';c='idle';d='Not enough light to measure. Switch on the bulb and bring it in front of the scope.';}
+  const el=$('risk');el.className='risk '+c;el.textContent=t;$('riskTxt').textContent=d;
   $('hPct').textContent=L.pct.toFixed(0);$('hFreq').textContent=L.flick?L.freq.toFixed(0):'0';const hs=$('hSafe');hs.textContent=t;hs.className='hv '+c;bulbDepth=Math.min(1,L.pct/100);
 }
 
@@ -601,6 +602,7 @@ function renderTable(){
 }
 $('btnSave').onclick=()=>{
   if(!last){alert('No reading yet. Connect the device or start Demo first.');return;}
+  if(last.mean<120){alert('Too dark to measure. Switch on the bulb in front of the scope first.');return;}
   const [t,c]=risk(last.freq,last.pct);
   saved.push({name:$('lbl').value.trim()||('Light '+(saved.length+1)),freq:last.flick?last.freq.toFixed(0)+' Hz':'—',pct:last.pct.toFixed(1)+' %',fi:last.fi.toFixed(3),risk:t,cls:c,time:new Date().toLocaleTimeString()});
   $('lbl').value='';renderTable();
