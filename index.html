@@ -23,7 +23,7 @@ body{background:radial-gradient(1100px 700px at 50% 30%,#2a1606 0%,transparent 6
 #rays{position:absolute;left:50%;top:0;width:100vw;height:100%;transform:translateX(-50%);z-index:0;pointer-events:none}
 .hero>*{position:relative;z-index:1}
 .pill{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:5px;font-size:15px;padding:10px 24px;border:1.5px solid rgba(255,255,255,.35);border-radius:40px;background:rgba(10,8,14,.6);backdrop-filter:blur(6px);animation:fadeD .8s both}
-#heroTitle{font-family:Audiowide,Orbitron,sans-serif;font-size:clamp(28px,8.6vw,150px);line-height:1;margin-top:2.8vh;letter-spacing:2px;
+#heroTitle{font-family:Audiowide,Orbitron,sans-serif;font-size:clamp(46px,10.4vw,150px);line-height:1;margin-top:2.8vh;letter-spacing:2px;
  background:linear-gradient(180deg,#fff7e0 0%,#ffd88a 35%,#ffb04a 62%,#c4651c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
  -webkit-text-stroke:1px rgba(255,236,190,.35);animation:zoomIn 1.1s cubic-bezier(.2,.9,.2,1) both;white-space:nowrap}
 .tag2{font-family:Orbitron,sans-serif;font-weight:800;color:var(--cy);letter-spacing:clamp(4px,.7vw,8px);font-size:clamp(16px,2.2vw,30px);margin-top:2vh;text-shadow:0 0 18px rgba(95,227,255,.55);animation:fadeU 1s .3s both}
@@ -88,6 +88,28 @@ footer{text-align:center;color:var(--mut);font-size:12px;margin:26px 0 6px;lette
 footer b{color:var(--txt)}
 #help{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:5;align-items:center;justify-content:center;padding:16px}
 #help .card{max-width:560px;line-height:1.7;font-size:14px;max-height:90vh;overflow:auto}
+/* ---------- fidget tracker ---------- */
+.fsc{display:flex;align-items:flex-end;gap:10px}
+.fsc .big{font-size:54px;line-height:1}
+.fLbl{font-family:Orbitron,Arial,sans-serif;font-weight:800;letter-spacing:2px;font-size:14px;margin-top:8px}
+.fLbl.ok{color:var(--ok)}.fLbl.warn{color:var(--warn)}.fLbl.bad{color:var(--bad)}.fLbl.idle{color:var(--mut)}
+.mtr{height:16px;background:#140f0a;border-radius:9px;overflow:hidden;margin-top:12px;border:1px solid var(--line)}
+.mtr>div{height:100%;width:0;background:linear-gradient(90deg,#2ee59d,#ffc23d 55%,#ff4d6d);transition:width .35s;box-shadow:0 0 18px rgba(255,170,70,.5)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.duo .big{font-size:28px}
+.phs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:10px;align-items:start}
+.ph{border:1px solid var(--line);border-radius:16px;padding:14px;background:rgba(10,8,14,.45)}
+.ph h4{font-family:Orbitron,Arial,sans-serif;font-size:12px;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
+.ph .big{font-size:30px}
+.ph .btn{width:100%;margin-top:10px}
+.ph.live{border-color:var(--gold);box-shadow:0 0 30px rgba(255,170,70,.25)}
+.cmp{height:12px;background:#140f0a;border-radius:6px;overflow:hidden;margin-top:6px}
+.cmp>div{height:100%;width:0;transition:width .6s}
+.verdict{font-family:Orbitron,Arial,sans-serif;font-weight:800;font-size:16px;letter-spacing:1px;line-height:1.5;color:var(--txt)}
+.readBox{display:none;margin-top:14px;padding:18px 20px;border-radius:14px;background:rgba(255,240,215,.06);border:1px dashed rgba(255,190,110,.35);font-size:16px;line-height:1.9;color:#f3e9da}
+.readBox b{color:var(--gold)}
+.disc{font-size:12px;color:var(--mut);margin-top:12px;font-style:italic}
+@media(max-width:950px){.phs{grid-template-columns:1fr}}
 @media(max-width:950px){.c3{grid-column:span 6}.c4,.c5,.c7,.c8{grid-column:span 12}.hstats{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:560px){.hv{font-size:20px}.hb{padding:12px 18px;font-size:14px}}
 </style>
@@ -173,9 +195,56 @@ footer b{color:var(--txt)}
     <table><thead><tr><th>#</th><th>Light</th><th>Frequency</th><th>% Flicker</th><th>Flicker Index</th><th>Result</th><th>Time</th></tr></thead><tbody id="tb"><tr><td colspan="7" style="color:var(--mut)">No readings saved yet</td></tr></tbody></table>
   </div>
 </div>
+
+<div class="secT" id="fidget"><h2>FIDGET TRACKER</h2><div class="ln"></div></div>
+<div class="grid">
+  <div class="card c4 tilt"><h3>Restlessness Meter</h3>
+    <div class="fsc"><div class="big" id="fScore">—</div><span class="unit">/ 100</span></div>
+    <div class="mtr"><div id="fBar"></div></div>
+    <div class="fLbl idle" id="fLbl">WAITING FOR BAND</div>
+    <div class="duo">
+      <div><div class="note">Fidgets (total)</div><div class="big" id="fCount">0</div></div>
+      <div><div class="note">Per minute</div><div class="big" id="fRate">0</div></div>
+    </div>
+    <div class="note" id="fNote">Wear the band on the wrist and connect the device</div>
+  </div>
+  <div class="card c8 tilt"><h3>Live Hand Movement (last 60 seconds)</h3><canvas id="cMot" height="250"></canvas>
+    <div class="row" style="margin-top:10px;font-size:13px;color:var(--mut)">Sensitivity:
+      <select id="fSens"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select>
+      <button class="btn" id="fReset">Reset count</button>
+    </div>
+  </div>
+
+  <div class="card c12">
+    <h3>Flicker vs Steady Light · Restlessness Test</h3>
+    <div class="note" style="font-size:13px">Wear the band. Read the passage under each light for the full time. The app counts how often the hand fidgets.</div>
+    <div class="row" style="margin-top:10px;font-size:13px;color:var(--mut)">Test time:
+      <select id="fDur"><option value="1">1 minute</option><option value="2" selected>2 minutes</option></select>
+    </div>
+    <div class="phs">
+      <div class="ph" id="phA"><h4>TEST 1 · FLICKERING LIGHT</h4>
+        <div class="big" id="aVal">—</div><div class="note" id="aSub">fidgets / minute</div>
+        <button class="btn main" id="btnA">▶ Start Test 1</button></div>
+      <div class="ph" id="phB"><h4>TEST 2 · STEADY LIGHT</h4>
+        <div class="big" id="bVal">—</div><div class="note" id="bSub">fidgets / minute</div>
+        <button class="btn main" id="btnB">▶ Start Test 2</button></div>
+      <div class="ph"><h4>COMPARISON</h4>
+        <div class="note">Flickering light</div><div class="cmp"><div id="cmpA" style="background:linear-gradient(90deg,#ff8a3d,#ff4d6d)"></div></div>
+        <div class="note" style="margin-top:8px">Steady light</div><div class="cmp"><div id="cmpB" style="background:linear-gradient(90deg,#2ee59d,#5fe3ff)"></div></div>
+        <div class="verdict" id="verdict" style="margin-top:12px">Run both tests to compare</div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="btnTCsv">⬇ Download Results</button><button class="btn" id="btnTClr">Clear</button></div>
+      </div>
+    </div>
+    <div class="readBox" id="readBox">
+      <div class="note" style="margin-bottom:6px">⏱ <span id="tLeft">2:00</span> left · keep reading</div>
+      Light is a kind of energy that travels as a wave. Most LED bulbs at home do not give a perfectly steady light. They switch brighter and darker <b>100 times every second</b>. Our eyes cannot see this, but the brain may still notice it. Scientists think this hidden flicker can make some people feel tired, get headaches, or find it harder to sit still and focus. In this test, you read the same kind of text under two different lights, and a small motion sensor on your wrist counts how often your hand moves. If the hand moves more under the flickering light, the light may be making you more restless. Keep reading slowly and calmly until the timer ends.
+    </div>
+    <div class="disc">Note: Hand movement shows restlessness only. It does not diagnose ADHD or any medical condition.</div>
+  </div>
+</div>
 </div>
 
-<footer>FlickerScope · IRIS — The Invisible Flicker Project<br>Student: <b>Deetya Behl</b> · Mentor: <b>Mohit Sood</b> · HOD: <b>Raghu Raja Mehra</b></footer>
+<footer>FlickerScope · IRIS — The Invisible Flicker Project<br>Student: <b>Deetya Behl</b></footer>
 </div>
 
 <div id="help"><div class="card">
@@ -188,6 +257,8 @@ footer b{color:var(--txt)}
   3. Put the light to be tested in front of the scope tube.<br>
   4. Scroll down, type the light's name and click <b>Save Reading</b>. Repeat for other lights.<br>
   5. Click <b>Download CSV</b> to get all results in Excel.<br><br>
+  <b>Fidget Tracker</b>: A small motion sensor (<b>MPU-6050</b>) on the wrist band tells the Pico how much the hand is moving. The app turns this into a <b>Restlessness score</b> and counts fidgets.<br>
+  For the test: run <b>Test 1</b> under a flickering bulb and <b>Test 2</b> under a steady (flicker-free) light, then compare. Hand movement shows restlessness only; it is not a medical test.<br><br>
   <b>Result guide:</b> Green = no visible effect · Yellow = low risk · Red = high risk.<br><br>
   <button class="btn main" onclick="document.getElementById('help').style.display='none'">Got it</button>
 </div></div>
@@ -275,6 +346,7 @@ async function connect(){
 async function disconnect(){running=false;try{await reader.cancel();}catch(e){}try{await port.close();}catch(e){}}
 if('serial' in navigator)navigator.serial.addEventListener('disconnect',()=>{running=false;setStatus('','Device unplugged');$('btnConnect').innerHTML='⚡ Connect FlickerScope';});
 function handle(line){
+  if(line.startsWith('M,')){const v=+line.slice(2);if(!isNaN(v))addMotion(v);return;}
   if(!line.startsWith('D,'))return;
   const p=line.split(',');const r=+p[1];const s=[];
   for(let i=2;i<p.length;i++){const v=+p[i];if(!isNaN(v))s.push(v);}
@@ -289,6 +361,9 @@ function startDemo(){
     const mod=+$('demoSel').value/100,n=1000,r=2000,s=[];
     for(let i=0;i<n;i++){const t=i/r;const wave=Math.abs(Math.sin(2*Math.PI*50*t+ph));s.push(Math.round(1800*(1-mod+2*mod*wave*wave)/(1+0)+ (Math.random()-.5)*14));}
     ph+=0.7;analyse(s,r);
+    // demo hand movement: more fidgets under stronger flicker
+    let v=1+Math.random()*4;if(Math.random()<0.08+mod*0.45)v+=12+Math.random()*60;
+    addMotion(Math.round(v));
   },500);
 }
 function stopDemo(){if(demoTimer){clearInterval(demoTimer);demoTimer=null;}$('btnDemo').innerHTML='▶ Demo Mode';if(!running)setStatus('','Not connected');}
@@ -405,7 +480,118 @@ function draw3d(t){
   }
   x.fillStyle='#a99a86';x.font='11px sans-serif';const a=P(-1,0,1),b=P(1,0,1);x.textAlign='center';x.fillText('5 Hz',a[0],a[1]+16);x.fillText(Math.min(1000,fs/2)+' Hz',b[0],b[1]+16);
 }
-function loop(t){drawStars(t);drawHero(t);drawWave();drawGauge();drawSpec();draw3d(t);requestAnimationFrame(loop);}
+/* ---------- fidget tracker ---------- */
+const SENS={low:14,med:8,high:4};
+const mot=[];const MOTN=120;
+let fEvents=[],fTotal=0,fAbove=false,restless=0,lastMotT=0,bandOk=false;
+const test={on:false,phase:null,end:0,dur:0,count:0,sum:0,n:0,timer:null};
+const tres={};const mlog=[];
+function addMotion(v){
+  const now=Date.now();lastMotT=now;
+  if(v<0){bandOk=false;updFidget();return;}
+  bandOk=true;
+  mot.push(v);if(mot.length>MOTN)mot.shift();
+  const th=SENS[$('fSens').value];
+  if(v>=th&&!fAbove){fAbove=true;fTotal++;fEvents.push(now);if(test.on)test.count++;}
+  else if(v<th*0.6)fAbove=false;
+  while(fEvents.length&&now-fEvents[0]>60000)fEvents.shift();
+  restless+=(Math.min(100,v*2)-restless)*0.35;
+  if(test.on){test.sum+=Math.min(100,v*2);test.n++;}
+  mlog.push([new Date().toLocaleTimeString(),v,Math.round(restless),fTotal,test.on?(test.phase==='A'?'Test 1 (flicker)':'Test 2 (steady)'):'Live']);
+  if(mlog.length>20000)mlog.shift();
+  updFidget();
+}
+function updFidget(){
+  const lbl=$('fLbl');
+  if(!bandOk){$('fScore').textContent='—';$('fBar').style.width='0';lbl.className='fLbl bad';lbl.textContent='BAND NOT DETECTED';$('fNote').textContent='⚠ Check the 4 band wires (pins 40, 8, 6, 7) and press them in firmly';return;}
+  const s=Math.round(restless);$('fScore').textContent=s;$('fBar').style.width=s+'%';
+  if(s<15){lbl.className='fLbl ok';lbl.textContent='CALM';}else if(s<45){lbl.className='fLbl warn';lbl.textContent='SLIGHTLY RESTLESS';}else{lbl.className='fLbl bad';lbl.textContent='RESTLESS';}
+  $('fCount').textContent=fTotal;$('fRate').textContent=fEvents.length;
+  $('fNote').textContent='✓ Band connected · move the hand to see the meter rise';
+}
+function checkBand(){
+  if((running||demoTimer)&&lastMotT&&Date.now()-lastMotT>4000&&bandOk){bandOk=false;updFidget();}
+}
+function drawMot(){
+  const [x,w,h]=fit($('cMot'));x.clearRect(0,0,w,h);
+  x.strokeStyle='rgba(255,190,110,.07)';x.lineWidth=1;
+  for(let i=1;i<6;i++){x.beginPath();x.moveTo(i*w/6,0);x.lineTo(i*w/6,h);x.stroke();}
+  for(let i=1;i<4;i++){x.beginPath();x.moveTo(0,i*h/4);x.lineTo(w,i*h/4);x.stroke();}
+  if(!mot.length){x.fillStyle='#a99a86';x.font='14px sans-serif';x.textAlign='center';x.fillText('Waiting for band data…',w/2,h/2);return;}
+  const MX=Math.max(40,...mot)*1.1;const Y=v=>h-6-Math.min(v,MX)/MX*(h-16);
+  const th=SENS[$('fSens').value];const ty=Y(th);
+  x.setLineDash([6,6]);x.strokeStyle='rgba(255,77,109,.55)';x.beginPath();x.moveTo(0,ty);x.lineTo(w,ty);x.stroke();x.setLineDash([]);
+  x.fillStyle='#ff8da0';x.font='11px sans-serif';x.textAlign='left';x.fillText('fidget line',6,ty-6);
+  const bw=w/MOTN;const off=MOTN-mot.length;
+  for(let i=0;i<mot.length;i++){
+    const v=mot[i],px=(off+i)*bw,py=Y(v);
+    const g=x.createLinearGradient(0,h,0,py);
+    if(v>=th){g.addColorStop(0,'rgba(255,138,61,.5)');g.addColorStop(1,'#ff4d6d');}else{g.addColorStop(0,'rgba(46,229,157,.25)');g.addColorStop(1,'#2ee59d');}
+    x.fillStyle=g;x.fillRect(px+1,py,Math.max(1,bw-2),h-6-py);
+  }
+  x.fillStyle='#a99a86';x.font='11px sans-serif';x.textAlign='left';x.fillText('60 s ago',4,h-8);x.textAlign='right';x.fillText('now',w-4,h-8);
+}
+function fmtT(ms){const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function startTest(ph){
+  if(!running&&!demoTimer){alert('Connect the device (or start Demo) first.');return;}
+  if(!bandOk){alert('Fidget band not detected. Check the band wires first.');return;}
+  if(test.on){if(confirm('Stop the running test?'))endTest(true);return;}
+  const dur=+$('fDur').value*60000;
+  Object.assign(test,{on:true,phase:ph,dur,end:Date.now()+dur,count:0,sum:0,n:0});
+  $('ph'+ph).classList.add('live');$('btn'+ph).textContent='■ Stop';$('readBox').style.display='block';
+  $(ph.toLowerCase()+'Val').textContent='0';$(ph.toLowerCase()+'Sub').textContent='fidgets so far';
+  test.timer=setInterval(()=>{const left=test.end-Date.now();$('tLeft').textContent=fmtT(left);
+    $(ph.toLowerCase()+'Val').textContent=test.count;if(left<=0)endTest(false);},250);
+  $('readBox').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function endTest(cancel){
+  clearInterval(test.timer);const ph=test.phase;test.on=false;
+  $('ph'+ph).classList.remove('live');$('readBox').style.display='none';
+  $('btn'+ph).textContent='▶ Start Test '+(ph==='A'?1:2);
+  if(cancel){$(ph.toLowerCase()+'Val').textContent=tres[ph]?tres[ph].perMin.toFixed(1):'—';$(ph.toLowerCase()+'Sub').textContent='fidgets / minute';return;}
+  const mins=test.dur/60000;
+  tres[ph]={perMin:test.count/mins,count:test.count,avg:test.n?test.sum/test.n:0,mins,time:new Date().toLocaleTimeString()};
+  renderTest();
+}
+function renderTest(){
+  for(const ph of ['A','B']){const r=tres[ph],k=ph.toLowerCase();
+    if(r){$(k+'Val').textContent=r.perMin.toFixed(1);$(k+'Sub').textContent=`fidgets / minute · avg restlessness ${r.avg.toFixed(0)}`;}
+    else{$(k+'Val').textContent='—';$(k+'Sub').textContent='fidgets / minute';}}
+  const A=tres.A,B=tres.B,mx=Math.max(1,A?A.perMin:0,B?B.perMin:0);
+  $('cmpA').style.width=(A?A.perMin/mx*100:0)+'%';$('cmpB').style.width=(B?B.perMin/mx*100:0)+'%';
+  const v=$('verdict');
+  if(!(A&&B)){v.textContent='Run both tests to compare';v.style.color='';return;}
+  if(A.perMin===0&&B.perMin===0){v.textContent='No fidgets in either test';v.style.color='var(--ok)';return;}
+  if(B.perMin===0){v.textContent='Fidgets seen ONLY under the flickering light';v.style.color='var(--bad)';return;}
+  if(A.perMin===0){v.textContent='Fidgets seen ONLY under the steady light';v.style.color='var(--ok)';return;}
+  const diff=(A.perMin-B.perMin)/B.perMin*100;
+  if(Math.abs(A.perMin-B.perMin)<0.5||Math.abs(diff)<10){v.textContent='About the same under both lights';v.style.color='var(--warn)';}
+  else if(diff>0){v.textContent=`${Math.round(diff)}% MORE restless under the flickering light`;v.style.color='var(--bad)';}
+  else{v.textContent=`${Math.round(-diff)}% LESS restless under the flickering light`;v.style.color='var(--ok)';}
+}
+$('btnA').onclick=()=>startTest('A');
+$('btnB').onclick=()=>startTest('B');
+$('fReset').onclick=()=>{fTotal=0;fEvents=[];updFidget();};
+$('btnTClr').onclick=()=>{if((tres.A||tres.B)&&confirm('Clear test results?')){delete tres.A;delete tres.B;renderTest();}};
+$('btnTCsv').onclick=()=>{
+  if(!mlog.length&&!tres.A&&!tres.B){alert('No band data yet. Connect the device and wear the band first.');return;}
+  const rows=[];
+  if(tres.A||tres.B){
+    rows.push(['TEST RESULTS']);
+    rows.push(['Test','Light','Minutes','Fidgets','Fidgets per minute','Average restlessness (0-100)','Time']);
+    if(tres.A)rows.push(['1','Flickering light',tres.A.mins,tres.A.count,tres.A.perMin.toFixed(1),tres.A.avg.toFixed(0),tres.A.time]);
+    if(tres.B)rows.push(['2','Steady light',tres.B.mins,tres.B.count,tres.B.perMin.toFixed(1),tres.B.avg.toFixed(0),tres.B.time]);
+    rows.push(['Comparison',$('verdict').textContent]);
+    rows.push([]);
+  }
+  rows.push(['ALL BAND READINGS']);
+  rows.push(['Time','Movement','Restlessness (0-100)','Total fidgets','Mode']);
+  for(const r of mlog)rows.push(r);
+  const csv=rows.map(r=>r.map(c=>String(c).includes(',')?'"'+c+'"':c).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='FlickerScope_Fidget_Data.csv';a.click();
+};
+
+function loop(t){drawStars(t);drawHero(t);drawWave();drawGauge();drawSpec();draw3d(t);drawMot();checkBand();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 
 /* ---------- saved readings ---------- */
